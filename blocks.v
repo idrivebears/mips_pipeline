@@ -19,6 +19,23 @@ module register (q,d,clk,rst);
       q <= d;
 endmodule // register
 
+//Behavioral model of N-bit Register:
+// positive edge-triggered,
+// synchronous active-high reset.
+module n_register (q,d,clk,rst);
+   parameter nBits = 32; //default val 32
+   input [nBits-1:0] d;
+   input clk, rst;
+   output [nBits-1:0] q;
+   //
+   reg [nBits-1:0] q;
+   always @ (posedge clk)
+     if (rst) 
+      q <= 0; 
+    else 
+      q <= d;
+endmodule // n_register
+
 //Behavioral model of 32-bit adder.
 module adder (s,a,b);
    input [31:0] a,b;
