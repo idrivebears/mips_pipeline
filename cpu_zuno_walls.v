@@ -2,6 +2,27 @@
 module CPU (clk, rst);
 	input clk, rst;
 	
+	// Wires for IFID
+	wire [63:0] IFID_Reg;
+	wire [31:0] IFID_pc_4, IFID_Instr;
+
+	// Wires for IDEX
+	wire [115:0] IDEX_Reg;
+	wire [31:0] IDEX_pc_4, IDEX_ExtImm, IDEX_rdData1, IDEX_rdData2;
+	wire [4:0] IDEX_rd, IDEX_rt;
+	wire [5:0] IDEX_funct;
+
+	// Wires for EXMEM
+	wire [101:0] EXMEM_Reg;
+	wire [31:0] EXMEM_pc_4_ba, EXMEM_alu_result, EXMEM_readData2;
+	wire EXMEM_z;
+	wire [4:0] EXMEM_wrAddr2;
+
+	// Wires for MEMWVB
+	wire [63:0] MEMWB_Reg;
+	wire [31:0] MEMWB_alu_result, MEMWB_readDataOut;
+
+
 	wire [31:0] Inst, pc, pc_4, pc_4_ba, pc_d, BranchAddress, ExtImm, alu_result, rdData1, rdData2, alu_b, bj_4, JumpAddr, luiResult, jalMuxOut, readDataOut, lwMuxOut, luiMuxOut, jrMuxOut, pc_8, adderWrOut;
 	wire [25:0] Addr;
 	wire [15:0] Imm;
@@ -10,14 +31,14 @@ module CPU (clk, rst);
 	wire [2:0] Control;
 	wire z, WrEn, imm, ExtOp, branch, wr, jump, lui, jal, jr;
 	
-	assign OpCode = Inst[31:26];
-	assign rs = Inst[25:21];
-	assign rt = Inst[20:16];
-	assign rd = Inst[15:11];
-	assign shamt = Inst[10:6];
-	assign funct = Inst[5:0];
-	assign Imm = Inst[15:0];
-	assign Addr = Inst[25:0];
+	assign OpCode = IFID_Inst[31:26];
+	assign rs = IFID_Inst[25:21];
+	assign rt = IFID_Inst[20:16];
+	assign rd = IFID_Inst[15:11];
+	assign shamt = IFID_Inst[10:6];
+	assign funct = IFID_Inst[5:0];
+	assign Imm = IFID_Inst[15:0];
+	assign Addr = IFID_Inst[25:0];
 	assign luiResult = {Imm, 16'b0};
 	
 	assign BranchAddress = {ExtImm[29:0],2'b0};
@@ -61,6 +82,37 @@ module CPU (clk, rst);
 	
 	//CONTROL UNIT
 	ControlUnit CtrlUnit(.OpCode(OpCode), .funct(funct), .z(z), .WrEn(WrEn), .imm(imm), .ExtOp(ExtOp), .branch(branch), .Control(Control), .jump(jump), .wr(wr), .lw(lw), .lui(lui), .jr(jr), .jal(jal);
+
+	// PIPELINES
+
+	//IFID PIPELINE 
+	n_register #(.nBits(64)) IFID(.q(IFID_Reg), .d({pc_4,Inst}), .clk(clk),. rst(rst));
+	assign IFID_pc_4      = IFID_Reg[63:32];
+	assign IFID_Inst      = IFID_Reg[31:0];
+
+	//IDEX PIPELINE 32(IFID_PC4) + 32(readdata1) + 32(readdata2) + 32(Sign extend) + 16(Imm)
+	n_register #(.nBits(144)) IDEX(.q(IDEX_Reg), .d({IFID_pc_4, rdData1, rdData2, ExtImm, funct, rt, rd}), .clk(clk),.rst(rst));
+	assign IDEX_pc_4      = IDEX_Reg[143:112];
+	assign IDEX_rdData1  = IDEX_Reg[111:80];
+	assign IDEX_rdData12 = IDEX_Reg[79:48];
+	assign IDEX_ExtImm   = IDEX_Reg[47:16];
+	assign IDEX_funct    = IDEX_Reg[15:10];
+	assign IDEX_rt       = IDEX_Reg[9:5];
+	assign IDEX_rd       = IDEX_Reg[4:0];
+
+	//EXMEM PIPELINE 
+	n_register #(.nBits(102)) EXMEM(.q(EXMEM_Reg), .d({pc_4_ba, z, alu_result,wrAddr2,rdData2}), .clk(clk),.rst(rst));
+	assign EXMEM_pc_4_ba     = EXMEM_Reg[101:70];
+	assign EXMEM_z           = EXMEM_Reg[69];
+	assign EXMEM_alu_result  = EXMEM_Reg[68:37];
+	assign EXMEM_wrAddr2     = EXMEM_Reg[36:32];
+	assign EXMEM_readData2   = EXMEM_Reg[31:0];
+
+	//MEMWB PIPELINE
+	n_register #(.nBits(64)) MEMWB(.q(MEMWB_Reg), .d({readDataOut, alu_result}), .clk(clk),.rst(rst));
+	assign MEMWB_readDataOut = MEMWB_Reg[63:32];
+	assign MEMWB_alu_result  = MEMWB_Reg[31:0];
+
 	
 endmodule // CPU 
 
