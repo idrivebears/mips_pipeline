@@ -3,24 +3,24 @@ module CPU (clk, rst);
 	input clk, rst;
 	
 	// Wires for IFID
-	wire [63:0] IFID_Reg;
+	wire [74:0] IFID_Reg;
 	wire [31:0] IFID_pc_4, IFID_Inst;
 
 	// Wires for IDEX
-	wire [115:0] IDEX_Reg;
+	wire [151:0] IDEX_Reg;
 	wire [31:0] IDEX_pc_4, IDEX_ExtImm, IDEX_rdData1, IDEX_rdData2;
 	wire [4:0] IDEX_rd, IDEX_rt;
 	wire [5:0] IDEX_funct;
 
 	// Wires for EXMEM
-	wire [101:0] EXMEM_Reg;
+	wire [169:0] EXMEM_Reg;
 	wire [31:0] EXMEM_pc_4_ba, EXMEM_alu_result, EXMEM_rdData2, EXMEM_readData1, EXMEM_ExtImm;
 	wire EXMEM_z;
 	wire [4:0] EXMEM_wrAddr2;
 
 
 	// Wires for MEMWVB
-	wire [63:0] MEMWB_Reg;
+	wire [72:0] MEMWB_Reg;
 	wire [4:0] MEMWB_wrAddr2;
 	wire [31:0] MEMWB_alu_result, MEMWB_readDataOut;
 
@@ -28,13 +28,13 @@ module CPU (clk, rst);
 	wire [31:0] Inst, pc, pc_4, pc_4_ba, pc_d, BranchAddress, ExtImm, alu_result, rdData1, rdData2, alu_b, bj_4, JumpAddr, luiResult, jalMuxOut, readDataOut, lwMuxOut, luiMuxOut, jrMuxOut, pc_8, adderWrOut;
 	wire [25:0] Addr;
 	wire [15:0] Imm;
-	wire [5:0] OpCode, funct, IFID_funct, IFID_OpCode, IDEX_funct, IDEX_OpCode, EXMEM_OpCode, EXMEM_funct, MEMWB_funct, MEMWB_OpCode;
+	wire [5:0] OpCode, funct, IFID_funct, IFID_OpCode, IDEX_OpCode, EXMEM_OpCode, EXMEM_funct, MEMWB_funct, MEMWB_OpCode;
 	wire [4:0] rs, rt, rd, shamt, wrAddr, wrAddr2;
 	wire [2:0] Control IFID_Control, IDEX_Control, EXMEM_Control, MEMWB_Control;
 	wire z, WrEn, imm, ExtOp, branch, wr, jump, lui, jal, jr, lw;
 	wire IFID_z, IFID_WrEn, IFID_imm, IFID_ExtOp, IFID_branch, IFID_wr, IFID_jump, IFID_lui, IFID_jal, IFID_jr, IFID_lw;
 	wire IDEX_z, IDEX_WrEn, IDEX_imm, IDEX_ExtOp, IDEX_branch, IDEX_wr, IDEX_jump, IDEX_lui, IDEX_jal, IDEX_jr, IDEX_lw;
-	wire EXMEM_z, EXMEM_WrEn, EXMEM_imm, EXMEM_ExtOp, EXMEM_branch, EXMEM_wr, EXMEM_jump, EXMEM_lui, EXMEM_jal, EXMEM_jr, EXMEM_lw;
+	wire EXMEM_WrEn, EXMEM_imm, EXMEM_ExtOp, EXMEM_branch, EXMEM_wr, EXMEM_jump, EXMEM_lui, EXMEM_jal, EXMEM_jr, EXMEM_lw;
 	wire MEMWB_z, MEMWB_WrEn, MEMWB_imm, MEMWB_ExtOp, MEMWB_branch, MEMWB_wr, MEMWB_jump, MEMWB_lui, MEMWB_jal, MEMWB_jr, MEMWB_lw;
 	
 	assign OpCode = IFID_Inst[31:26];
